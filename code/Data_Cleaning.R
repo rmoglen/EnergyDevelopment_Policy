@@ -34,3 +34,9 @@ if (build_SPP){
 #Natural Gas Prices
 GasPrice_h=read_excel("US_GasPrice_1997-2019.xlsx")
 GasPrice_f=read_excel("US_GasPrice_2020-2050.xlsx")
+
+#Temperatures
+TempAvg_f=read_excel("Texas_TempAvg_2020-2039.xlsx")  #in degrees C
+TempMin_f=read_excel("Texas_TempMin_2020-2039.xlsx")  #in degrees C
+TempMax_f=read_excel("Texas_TempMax_2020-2039.xlsx")  #in degrees C
+
