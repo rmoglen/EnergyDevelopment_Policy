@@ -1,7 +1,7 @@
 # EnviroDev_Policy
 
 This repository contains work done in Fall 2020 for Environmental Development and Policy (LAW379M):
-+ ERCOT Aggregated Settlement Point Price (SPP) predicition for the years 2020-2040 accross all load zones except LCRA and Rayburn
++ ERCOT Aggregated Settlement Point Price (SPP) predicition for the years 2020-2040 accross all load zones
 
 ## Data
 Data Sources:
