@@ -30,6 +30,17 @@ if (build_SPP){
 } else{
   SPP_h=readRDS("SPP_h.rds")
 }
+SPP_h$"Delivery Date"=as.Date(SPP_h$"Delivery Date",format = "%m/%d/%Y")
+SPP_h$month=as.numeric(format(SPP_h$`Delivery Date`, format="%m"))
+SPP_h$Year=as.numeric(format(SPP_h$`Delivery Date`, format="%Y"))
+SPP_h$season="non-summer"
+SPP_h$season[SPP_h$month<11 & SPP_h$month>4]="summer"
+SPP_h$interval="off-peak"
+SPP_h$interval[SPP_h$season=="summer" & SPP_h$'Delivery Hour'>7 & SPP_h$'Delivery Hour'<24]="peak"
+SPP_h$interval[SPP_h$season=="non-summer" & (SPP_h$'Delivery Hour'<2 | SPP_h$'Delivery Hour'>23)]="peak"
+SPP_h$category=paste0(SPP_h$season," ",SPP_h$interval)
+colnames(SPP_h)[7]="Price"
+colnames(SPP_h)[5]="Zone"
 
 #Natural Gas Prices
 GasPrice_h=read_excel("US_GasPrice_1997-2019.xlsx")
@@ -51,3 +62,27 @@ GDP_f=read_excel("Texas_GDP_2020-2039.xlsx")
 
 #Renewables Capital Costs
 Renewables=read_excel("Renewables_CC_2011-2039.xlsx")
+
+######## Build Testing and Training Sets  ########
+
+#build testing and training sets
+training_set=aggregate(Price~Year+category+Zone, data=SPP_h, FUN=median)
+testing_set=read_excel("testing_set.xlsx")
+
+#Gas Prices
+training_set=merge(training_set,GasPrice_h)
+testing_set=merge(testing_set,GasPrice_f[,c("Year","GasPrice_Base","GasPrice_High_EconGrowth")])
+
+#Economic Growth
+training_set=merge(training_set,GDP_h)
+testing_set=merge(testing_set,GDP_f)
+
+#Renewables Costs
+training_set=merge(training_set,Renewables[,c("Year","Solar_PV_Cost","Onshore_Wind_Cost")])
+testing_set=merge(testing_set,Renewables[,c("Year","Solar_PV_Cost","Onshore_Wind_Cost")])
+
+#Temperatures
+#coming back to temperatures cause it will take a while to format
+
+saveRDS(training_set,"training_data.RDS")
+saveRDS(testing_set,"testing_data.RDS")
