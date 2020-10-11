@@ -16,7 +16,19 @@ mymodel <- lm(Price ~ Year + category + Zone + NG_Price + GDP + Solar_PV_Cost + 
                data = training_data)
 print(summary(mymodel))
 
-######## Predict SPPs for Scenarios  ########
+######## Predict SPPs for Scenarios ########
+#Base Case
+names(testing_data)[names(testing_data) == "GasPrice_Base"]="NG_Price"
+names(testing_data)[names(testing_data) == "GDP_Base"]="GDP"
+testing_data$PredPrice_Base<- predict(mymodel,testing_data,type="response")
+names(testing_data)[names(testing_data) == "NG_Price"]="GasPrice_Base"
+names(testing_data)[names(testing_data) == "GDP"]="GDP_Base"
 
+#High Economic Growth
+names(testing_data)[names(testing_data) == "GasPrice_High_EconGrowth"]="NG_Price"
+names(testing_data)[names(testing_data) == "GDP_High_EconGrowth"]="GDP"
+testing_data$PredPrice_High_EconGrowth<- predict(mymodel,testing_data,type="response")
+names(testing_data)[names(testing_data) == "NG_Price"]="GasPrice_High_EconGrowth"
+names(testing_data)[names(testing_data) == "GDP"]="GDP_High_EconGrowth"
 
 ######## Ouptut SPPs  ########
