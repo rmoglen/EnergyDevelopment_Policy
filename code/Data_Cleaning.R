@@ -8,6 +8,7 @@ memory.limit(100000)
 ######## Inputs  ########
 setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnviroDev_Policy/data/")
 build_SPP=FALSE
+renewables_discount=0.9  #multiply predicted renewables capital costs by this discounting factor
 
 ######## Read in Data  ########
 #SPP
@@ -80,6 +81,10 @@ testing_set=merge(testing_set,GDP_f)
 #Renewables Costs
 training_set=merge(training_set,Renewables[,c("Year","Solar_PV_Cost","Onshore_Wind_Cost")])
 testing_set=merge(testing_set,Renewables[,c("Year","Solar_PV_Cost","Onshore_Wind_Cost")])
+names(testing_set)[names(testing_set) == "Solar_PV_Cost"]="Solar_PV_Cost_Base"
+names(testing_set)[names(testing_set) == "Onshore_Wind_Cost"]="Onshore_Wind_Cost_Base"
+testing_set$Solar_PV_Cost_CheaperRenewables=testing_set$Solar_PV_Cost_Base*renewables_discount
+testing_set$Onshore_Wind_Cost_CheaperRenewables=testing_set$Onshore_Wind_Cost_Base*renewables_discount
 
 #Temperatures
 #coming back to temperatures cause it will take a while to format
