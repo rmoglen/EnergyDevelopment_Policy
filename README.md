@@ -11,3 +11,4 @@ Data Sources:
 + [Texas Temperature Forecasts](http://regclim.coas.oregonstate.edu/visualization/rccv/states-counties/)
 + [Historical Temperatures](https://www.ncdc.noaa.gov/cdo-web/datatools/lcd)
 + [Historic Texas GDP](https://fred.stlouisfed.org/series/TXNGSP)
++ [Historic Renewable Capital Costs](https://www.eia.gov/electricity/generatorcosts/)
