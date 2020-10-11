@@ -49,3 +49,5 @@ Temp_h=read_excel("Houston_TempHourly_2011-2019.xlsx")
 GDP_h=read_excel("Texas_GDP_1997-2019.xlsx")
 GDP_f=read_excel("Texas_GDP_2020-2039.xlsx")
 
+#Renewables Capital Costs
+Renewables=read_excel("Renewables_CC_2011-2039.xlsx")
