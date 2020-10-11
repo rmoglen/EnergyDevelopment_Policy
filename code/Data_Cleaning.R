@@ -39,4 +39,9 @@ GasPrice_f=read_excel("US_GasPrice_2020-2050.xlsx")
 TempAvg_f=read_excel("Texas_TempAvg_2020-2039.xlsx")  #in degrees C
 TempMin_f=read_excel("Texas_TempMin_2020-2039.xlsx")  #in degrees C
 TempMax_f=read_excel("Texas_TempMax_2020-2039.xlsx")  #in degrees C
+TempAvg_f[,2:13]=(9/5)*TempAvg_f[,2:13]+32
+TempMin_f[,2:13]=(9/5)*TempMin_f[,2:13]+32
+TempMax_f[,2:13]=(9/5)*TempMax_f[,2:13]+32
+
+Temp_h=read_excel("Houston_TempHourly_2011-2019.xlsx")
 
