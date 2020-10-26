@@ -1,3 +1,7 @@
+#Author: Rachel Moglen
+#Date: 10/22/20
+#Fit linear model to predict future LMPs based on predictor forecasts
+
 library(xlsx)
 rm(list=ls())
 gc()
@@ -6,7 +10,7 @@ options(stringsAsFactors = FALSE)
 memory.limit(100000)
 
 ######## Inputs  ########
-setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnviroDev_Policy/data/")
+setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnergyDevelopment_Policy/data/")
 
 ######## Read in Data  ########
 training_data=readRDS("training_data.RDS")

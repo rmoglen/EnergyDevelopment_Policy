@@ -6,7 +6,7 @@ options(stringsAsFactors = FALSE)
 memory.limit(100000)
 
 ######## Inputs  ########
-setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnviroDev_Policy/data/")
+setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnergyDevelopment_Policy/data/")
 build_SPP=FALSE
 renewables_discount=0.9  #multiply predicted renewables capital costs by this discounting factor
 
