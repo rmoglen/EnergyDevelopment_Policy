@@ -60,3 +60,6 @@ names(testing_data)[names(testing_data) == "Onshore_Wind_Cost"]="Onshore_Wind_Co
 write.xlsx(testing_data[,c("PredPrice_Base","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S1_Base", row.names=FALSE)
 write.xlsx(testing_data[,c("PredPrice_High_EconGrowth","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_High_EconGrowth", append=TRUE, row.names=FALSE)
 write.xlsx(testing_data[,c("PredPrice_CheaperRenewables","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S3_CheaperRenewables", append=TRUE, row.names=FALSE)
+
+
+saveRDS(testing_data,"Predicted_SPPs.rds")

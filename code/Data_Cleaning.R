@@ -68,6 +68,7 @@ Renewables=read_excel("Renewables_CC_2011-2039.xlsx")
 
 #build testing and training sets
 training_set=aggregate(Price~Year+category+Zone, data=SPP_h, FUN=median)
+#training_set=aggregate(Price~Year+month+Zone, data=SPP_h, FUN=median)
 testing_set=read_excel("testing_set.xlsx")
 
 #Gas Prices
