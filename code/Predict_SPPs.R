@@ -19,6 +19,8 @@ testing_data=readRDS("testing_data.RDS")
 ######## Fit Model  ########
 mymodel <- lm(Price ~ Year + category + Zone + NG_Price + GDP + Solar_PV_Cost + Onshore_Wind_Cost, 
                data = training_data)
+#mymodel <- lm(Price ~ NG_Price, 
+#              data = training_data)
 print(summary(mymodel))
 
 ######## Predict SPPs for Scenarios ########
@@ -61,5 +63,5 @@ write.xlsx(testing_data[,c("PredPrice_Base","Year","category","Zone")], file="Pr
 write.xlsx(testing_data[,c("PredPrice_High_EconGrowth","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_High_EconGrowth", append=TRUE, row.names=FALSE)
 write.xlsx(testing_data[,c("PredPrice_CheaperRenewables","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S3_CheaperRenewables", append=TRUE, row.names=FALSE)
 
-
 saveRDS(testing_data,"Predicted_SPPs.rds")
+#saveRDS(testing_data,"Predicted_SPPs_NG_only.rds")

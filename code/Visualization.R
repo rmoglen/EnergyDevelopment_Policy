@@ -18,6 +18,42 @@ compute_basis_risk=FALSE
 graphing_regression=TRUE
 LZ_graphing="LZ_HOUSTON"
 
+######## Functions  ########
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
 
 ######## Basis Risk  ########
 if (compute_basis_risk){
@@ -72,6 +108,7 @@ if (compute_basis_risk){
 ######## Explore Predictive Model ########
 
 if (graphing_regression){
+### Overall LMPs over time, historic and predicted ###
   predicted_SPPs=readRDS("predicted_SPPs.RDS")
   historic_SPPs=readRDS("training_data.RDS")
   
@@ -108,10 +145,142 @@ if (graphing_regression){
     ylab("Average LMP ($/MWh)") +
     scale_linetype_manual(values=c("twodash", "dashed","solid","dotted"))+
     ggtitle(paste0("Average LMPs in ",LZ_graphing))+
-    ylim(0,30)+
+    ylim(0,35)+
     theme_minimal()
   
   print(p3)
   
+### Regression explination 1: Natural Gas Prices vs. LMP ###
+  
+  #LMPs
+  SPP_h=readRDS("SPP_h.rds")
+  colnames(SPP_h)[7]="Price"
+  colnames(SPP_h)[5]="Zone"
+  SPP_h=SPP_h[SPP_h$Zone==LZ_graphing,]
+  SPP_h$"Delivery Date"=as.Date(SPP_h$"Delivery Date",format = "%m/%d/%Y")
+  SPP_h$month=as.numeric(format(SPP_h$`Delivery Date`, format="%m"))
+  SPP_h$Year=as.numeric(format(SPP_h$`Delivery Date`, format="%Y"))
+  SPP_h=aggregate(Price~Year+month, data=SPP_h, FUN=median)
+  
+  #Gas Price
+  GasPrice_h=read_excel("US_GasPrice_2001-2019_monthly.xlsx")
+  SPP_h=merge(SPP_h,GasPrice_h)
+  
+  #plot
+  p4=ggplot(SPP_h, aes(x = NG_Price, y = Price)) +
+    geom_point() +
+    xlab("Natural Gas Price ($/ tcf)") +
+    ylab("Average Monthly LMP ($/MWh)") +
+    ggtitle(paste0("Gas Prices vs. LMPs in ",LZ_graphing, " (2011-2019)"))+
+    theme_minimal()
+  
+  lm_eqn = function(df,x,y){
+    m = lm(y ~ x, df);
+    eq = substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+                     list(a = format(unname(coef(m)[1]), digits = 2),
+                          b = format(unname(coef(m)[2]), digits = 2),
+                          r2 = format(summary(m)$r.squared, digits = 3)))
+    as.character(as.expression(eq));
+  }
+  
+  p5=ggplot(SPP_h, aes(x = NG_Price, y = Price)) +
+    geom_point() +
+    geom_smooth(method='lm', formula= y~x) +
+    geom_text(x = 3.75, y = 36, label = lm_eqn(SPP_h,SPP_h$NG_Price, SPP_h$Price), parse = TRUE) +
+    xlab("Natural Gas Price ($/ tcf)") +
+    ylab("Average Monthly LMP ($/MWh)") +
+    ggtitle(paste0("Gas Prices vs. LMPs in ",LZ_graphing, " (2011-2019)"))+
+    theme_minimal()
+  
+  print(p5)
+  
+  #And now look at resulting forecasts
+  predicted_SPPs=readRDS("predicted_SPPs_NG_only.RDS")
+  historic_SPPs=readRDS("training_data.RDS")
+  
+  #Formatting
+  predicted_SPPs=predicted_SPPs[predicted_SPPs$Zone==LZ_graphing,]
+  historic_SPPs=historic_SPPs[historic_SPPs$Zone==LZ_graphing,]
+  SPPs=data.frame(historic_SPPs[,c("Year","category","Price")],LMPs="Historic")
+  
+  #Base Case
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_Base")],LMPs="Predicted")
+  colnames(temp)[3]="Price"
+  SPPs=rbind(SPPs,temp)
+  
+  #Weight LMPs 
+  SPPs$Price[SPPs$category=="summer peak"]=SPPs$Price[SPPs$category=="summer peak"]*(1/6) 
+  SPPs$Price[SPPs$category=="summer off-peak"]=SPPs$Price[SPPs$category=="summer off-peak"]*(1/12)
+  SPPs$Price[SPPs$category=="non-summer off-peak"]=SPPs$Price[SPPs$category=="non-summer off-peak"]*(11/16)  
+  SPPs$Price[SPPs$category=="non-summer peak"]=SPPs$Price[SPPs$category=="non-summer peak"]*(1/16)  
+  SPPs=aggregate(Price~Year+LMPs, data=SPPs, FUN=sum)
+  
+  p6=ggplot(data=SPPs, aes(x=Year, y=Price, group=LMPs))+
+    geom_line(aes(linetype=LMPs)) +
+    xlab("Year") +
+    ylab("Average LMP ($/MWh)") +
+    ggtitle(paste0("Average LMPs in ",LZ_graphing, " (2011-2039)"))+
+    theme_minimal()
+  
+  #Plot gas prices on the same figure
+  GasPrice_h=read_excel("US_GasPrice_1997-2019.xlsx")
+  GasPrice_f=read_excel("US_GasPrice_2020-2050.xlsx")
+  colnames(GasPrice_f)[2]="NG_Price"
+  GasPrice=rbind(GasPrice_f[,c("Year","NG_Price")],GasPrice_h)
+  SPPs=merge(SPPs,GasPrice)
+  SPPs$Gas="Historic"
+  SPPs$Gas[SPPs$Year>2019]="EIA Forecast"
+
+  p6=p6 +
+    geom_point( data=SPPs,aes(x = Year, y = NG_Price*5.3, shape=Gas)) +
+    scale_y_continuous(
+      name = "Average LMP ($/MWh)", # first axis
+      sec.axis = sec_axis(~./5.3, name="Natural Gas Price ($/tcf)") #second axis
+    )
+  
+  print(p6)
+  
+  #Explore the relationship with other predictors: GDP, Year, Solar and Wind Costs
+  SPP_h=aggregate(Price~Year, data=SPP_h, FUN=mean)
+  GDP_h=read_excel("Texas_GDP_1997-2019.xlsx")
+  Renewables=read_excel("Renewables_CC_2011-2039.xlsx")
+  SPP_h=merge(SPP_h,GDP_h)
+  SPP_h=merge(SPP_h,Renewables)
+  
+  p7=ggplot(SPP_h, aes(x = Year, y = Price)) +
+    geom_point() +
+    geom_smooth(method='lm', formula= y~x) +
+    geom_text(x = 2016.5, y = 28, label = lm_eqn(SPP_h,SPP_h$Year, SPP_h$Price), parse = TRUE) +
+    xlab("Year") +
+    ylab("Average LMP ($/MWh)") +
+    scale_x_continuous(breaks=c(2011,2012,2013,2014,2015,2016,2017,2018,2019))+
+    theme_minimal()
+  
+  p8=ggplot(SPP_h, aes(x = GDP, y = Price)) +
+    geom_point() +
+    geom_smooth(method='lm', formula= y~x) +
+    geom_text(x = 1700000, y = 28, label = lm_eqn(SPP_h,SPP_h$GDP, SPP_h$Price), parse = TRUE) +
+    xlab("GDP (Millions of Dollars)") +
+    ylab("Average LMP ($/MWh)") +
+    theme_minimal()
+  
+  p9=ggplot(SPP_h, aes(x = Solar_PV_Cost, y = Price)) +
+    geom_point() +
+    geom_smooth(method='lm', formula= y~x) +
+    geom_text(x = 2500, y = 29, label = lm_eqn(SPP_h,SPP_h$Solar_PV_Cost, SPP_h$Price), parse = TRUE) +
+    xlab("Solar Capital Cost ($/kW)") +
+    ylab("Average LMP ($/MWh)") +
+    theme_minimal()
+  
+  p10=ggplot(SPP_h, aes(x = Onshore_Wind_Cost, y = Price)) +
+    geom_point() +
+    geom_smooth(method='lm', formula= y~x) +
+    geom_text(x = 1550, y = 28, label = lm_eqn(SPP_h,SPP_h$Onshore_Wind_Cost, SPP_h$Price), parse = TRUE) +
+    xlab("Onshore Wind Cost ($/kW)") +
+    ylab("Average LMP ($/MWh)") +
+    theme_minimal()
+  
+  p11=multiplot(p7, p8, p9, p10, cols=2)
+  print(p11)
 }
 
