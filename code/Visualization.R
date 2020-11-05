@@ -281,6 +281,5 @@ if (graphing_regression){
     theme_minimal()
   
   p11=multiplot(p7, p8, p9, p10, cols=2)
-  print(p11)
 }
 
