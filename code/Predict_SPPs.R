@@ -11,10 +11,12 @@ memory.limit(100000)
 
 ######## Inputs  ########
 setwd("C:/Users/Rachel/Documents/UT_Grad/EDP_LAW379M/EnergyDevelopment_Policy/data/")
+adjust=TRUE  #hybrid model= TRUE, OLS only= FALSE
 
 ######## Read in Data  ########
 training_data=readRDS("training_data.RDS")
 testing_data=readRDS("testing_data.RDS")
+adjustments=read_excel("adjustments.xlsx")
 
 ######## Fit Model  ########
 mymodel <- lm(Price ~ Year + category + Zone + NG_Price + GDP + Solar_PV_Cost + Onshore_Wind_Cost, 
@@ -57,6 +59,22 @@ names(testing_data)[names(testing_data) == "GDP"]="GDP_Base"
 names(testing_data)[names(testing_data) == "Solar_PV_Cost"]="Solar_PV_Cost_CheaperRenewables"
 names(testing_data)[names(testing_data) == "Onshore_Wind_Cost"]="Onshore_Wind_Cost_CheaperRenewables"
 
+#Adjustments
+testing_data=merge(testing_data,adjustments)
+if (adjust){
+  
+  #carbon tax
+  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$C_tax
+  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$C_tax
+  testing_data$PredPrice_Base=testing_data$PredPrice_Base*testing_data$C_tax
+  
+  #Generation mix- renewables only
+  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$Gen_Mix
+  
+  #Transmission- renewables and high growth
+  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$Transmission*0.95
+  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$Transmission
+  }
 
 ######## Ouptut SPPs  ########
 write.xlsx(testing_data[,c("PredPrice_Base","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S1_Base", row.names=FALSE)

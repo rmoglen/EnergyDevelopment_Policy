@@ -71,6 +71,7 @@ if (compute_basis_risk){
   basis_risk=basis_risk[,c(1,2,3,5,7)]
   basis_risk$price_diff=basis_risk$LZ_AEN - basis_risk$LZ_WEST
   basis_risk$month=as.numeric(format(basis_risk$`Delivery Date`, format="%m"))
+  basis_risk$Year=as.numeric(format(basis_risk$`Delivery Date`, format="%Y"))
   
   print(summary(basis_risk$price_diff))
   
@@ -103,6 +104,21 @@ if (compute_basis_risk){
     theme_minimal()
   
   print(p2)
+  
+  #Basis Risk over time
+  diff=aggregate(price_diff~Year, data=basis_risk, FUN=mean)
+  diff$Metric="Mean"
+  diff=rbind(diff, data.frame(aggregate(price_diff~Year, data=basis_risk, FUN=quantile, probs=0.05), Metric="5th Percentile"))
+  diff=rbind(diff, data.frame(aggregate(price_diff~Year, data=basis_risk, FUN=quantile, probs=0.95), Metric="95th Percentile"))
+  
+  p12=ggplot(data=diff, aes(x=Year, y=price_diff, group=Metric))+
+    geom_line(aes(linetype=Metric)) +
+    xlab("Year") +
+    ylab("Basis Risk (LZ_AEN-LZ_West) ($/MWh)") +
+    scale_x_continuous(breaks = seq(2011, 2019, by = 1))+
+    theme_minimal()
+  
+  print(p12)
 }
 
 ######## Explore Predictive Model ########
@@ -232,10 +248,10 @@ if (graphing_regression){
   SPPs$Gas[SPPs$Year>2019]="EIA Forecast"
 
   p6=p6 +
-    geom_point( data=SPPs,aes(x = Year, y = NG_Price*5.3, shape=Gas)) +
+    geom_point( data=SPPs,aes(x = Year, y = NG_Price*9.1, shape=Gas)) +
     scale_y_continuous(
       name = "Average LMP ($/MWh)", # first axis
-      sec.axis = sec_axis(~./5.3, name="Natural Gas Price ($/tcf)") #second axis
+      sec.axis = sec_axis(~./9.1, name="Natural Gas Price ($/tcf)") #second axis
     )
   
   print(p6)
