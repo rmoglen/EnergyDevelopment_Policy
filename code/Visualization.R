@@ -133,18 +133,18 @@ if (graphing_regression){
   historic_SPPs=historic_SPPs[historic_SPPs$Zone==LZ_graphing,]
   SPPs=data.frame(historic_SPPs[,c("Year","category","Price")],Scenario="Historic")
   
-  #Base Case
-  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_Base")],Scenario="Base")
+  #Medium
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_Base")],Scenario="Medium")
   colnames(temp)[3]="Price"
   SPPs=rbind(SPPs,temp)
   
-  #High Economic Growth
-  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_High_EconGrowth")],Scenario="High GDP Growth")
+  #High
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_High_EconGrowth")],Scenario="High")
   colnames(temp)[3]="Price"
   SPPs=rbind(SPPs,temp)
   
-  #CheaperRenewables
-  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_CheaperRenewables")],Scenario="Low Cost Renewables")
+  #Low
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_CheaperRenewables")],Scenario="Low")
   colnames(temp)[3]="Price"
   SPPs=rbind(SPPs,temp)
   
@@ -155,14 +155,35 @@ if (graphing_regression){
   SPPs$Price[SPPs$category=="non-summer peak"]=SPPs$Price[SPPs$category=="non-summer peak"]*(1/16)  
   SPPs=aggregate(Price~Year+Scenario, data=SPPs, FUN=sum)
   
-  p3=ggplot(data=SPPs, aes(x=Year, y=Price, group=Scenario))+
-    geom_line(aes(linetype=Scenario)) +
+  #Carbon Tax Scenarios
+  temp=readRDS("predicted_SPPs_C_tax_med.RDS")
+  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_Base")]
+  colnames(temp)[2]="Price"
+  temp$Scenario="Med C-tax"
+  SPPs=rbind(SPPs,temp)
+  
+  temp=readRDS("predicted_SPPs_C_tax_high.RDS")
+  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_High_EconGrowth")]
+  colnames(temp)[2]="Price"
+  temp$Scenario="High C-tax"
+  SPPs=rbind(SPPs,temp)
+  
+  temp=readRDS("predicted_SPPs_C_tax_low.RDS")
+  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_CheaperRenewables")]
+  colnames(temp)[2]="Price"
+  temp$Scenario="Low C-tax"
+  SPPs=rbind(SPPs,temp)
+  
+  p3=ggplot(data=SPPs, aes(x=Year, y=Price, group=Scenario, color=Scenario))+
+    geom_line(aes(linetype=Scenario),lwd=1.2) +
     xlab("Year") +
     ylab("Average LMP ($/MWh)") +
-    scale_linetype_manual(values=c("twodash", "dashed","solid","dotted"))+
+    scale_linetype_manual(values=c("dashed", "dashed","solid","dotted","dotted","twodash","twodash"))+
+    #scale_color_manual(values = c("gray40", "gray70", "cadetblue2","cadetblue2","cadetblue2","cadetblue2","cadetblue2")) +
     ggtitle(paste0("Average LMPs in ",LZ_graphing))+
-    ylim(0,35)+
+    ylim(0,60)+
     theme_minimal()
+  
   
   print(p3)
   
@@ -238,6 +259,7 @@ if (graphing_regression){
     ggtitle(paste0("Average LMPs in ",LZ_graphing, " (2011-2039)"))+
     theme_minimal()
   
+  
   #Plot gas prices on the same figure
   GasPrice_h=read_excel("US_GasPrice_1997-2019.xlsx")
   GasPrice_f=read_excel("US_GasPrice_2020-2050.xlsx")
@@ -298,4 +320,6 @@ if (graphing_regression){
   
   p11=multiplot(p7, p8, p9, p10, cols=2)
 }
+
+
 

@@ -63,23 +63,62 @@ names(testing_data)[names(testing_data) == "Onshore_Wind_Cost"]="Onshore_Wind_Co
 testing_data=merge(testing_data,adjustments)
 if (adjust){
   
-  #carbon tax
-  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$C_tax
-  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$C_tax
-  testing_data$PredPrice_Base=testing_data$PredPrice_Base*testing_data$C_tax
-  
-  #Generation mix- renewables only
+  #Generation mix
   testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$Gen_Mix
+  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$Gen_Mix
+  testing_data$PredPrice_Base=testing_data$PredPrice_Base*testing_data$Gen_Mix
   
   #Transmission- renewables and high growth
-  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$Transmission*0.95
-  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$Transmission
+  testing_data$PredPrice_Base=testing_data$PredPrice_Base*testing_data$Transmission
+  testing_data$PredPrice_CheaperRenewables=testing_data$PredPrice_CheaperRenewables*testing_data$Transmission*0.9
+  testing_data$PredPrice_High_EconGrowth=testing_data$PredPrice_High_EconGrowth*testing_data$Transmission*1.1
   }
 
 ######## Ouptut SPPs  ########
-write.xlsx(testing_data[,c("PredPrice_Base","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S1_Base", row.names=FALSE)
-write.xlsx(testing_data[,c("PredPrice_High_EconGrowth","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_High_EconGrowth", append=TRUE, row.names=FALSE)
-write.xlsx(testing_data[,c("PredPrice_CheaperRenewables","Year","category","Zone")], file="Predicted_SPPs.xlsx", sheetName="S3_CheaperRenewables", append=TRUE, row.names=FALSE)
+
 
 saveRDS(testing_data,"Predicted_SPPs.rds")
+
+#Oh my god so ugly. But I'm tired and want to go to bed
+testing_data$PredPrice_Base[testing_data$category=="summer peak"]=testing_data$PredPrice_Base[testing_data$category=="summer peak"]*(1/6) 
+testing_data$PredPrice_Base[testing_data$category=="summer off-peak"]=testing_data$PredPrice_Base[testing_data$category=="summer off-peak"]*(1/12)
+testing_data$PredPrice_Base[testing_data$category=="non-summer off-peak"]=testing_data$PredPrice_Base[testing_data$category=="non-summer off-peak"]*(11/16)  
+testing_data$PredPrice_Base[testing_data$category=="non-summer peak"]=testing_data$PredPrice_Base[testing_data$category=="non-summer peak"]*(1/16)  
+
+testing_data$PredPrice_High_EconGrowth[testing_data$category=="summer peak"]=testing_data$PredPrice_High_EconGrowth[testing_data$category=="summer peak"]*(1/6) 
+testing_data$PredPrice_High_EconGrowth[testing_data$category=="summer off-peak"]=testing_data$PredPrice_High_EconGrowth[testing_data$category=="summer off-peak"]*(1/12)
+testing_data$PredPrice_High_EconGrowth[testing_data$category=="non-summer off-peak"]=testing_data$PredPrice_High_EconGrowth[testing_data$category=="non-summer off-peak"]*(11/16)  
+testing_data$PredPrice_High_EconGrowth[testing_data$category=="non-summer peak"]=testing_data$PredPrice_High_EconGrowth[testing_data$category=="non-summer peak"]*(1/16)  
+
+testing_data$PredPrice_CheaperRenewables[testing_data$category=="summer peak"]=testing_data$PredPrice_CheaperRenewables[testing_data$category=="summer peak"]*(1/6) 
+testing_data$PredPrice_CheaperRenewables[testing_data$category=="summer off-peak"]=testing_data$PredPrice_CheaperRenewables[testing_data$category=="summer off-peak"]*(1/12)
+testing_data$PredPrice_CheaperRenewables[testing_data$category=="non-summer off-peak"]=testing_data$PredPrice_CheaperRenewables[testing_data$category=="non-summer off-peak"]*(11/16)  
+testing_data$PredPrice_CheaperRenewables[testing_data$category=="non-summer peak"]=testing_data$PredPrice_CheaperRenewables[testing_data$category=="non-summer peak"]*(1/16)  
+
+testing_data1=aggregate(PredPrice_Base~Year+Zone, data=testing_data, FUN=sum)
+testing_data2=aggregate(PredPrice_High_EconGrowth~Year+Zone, data=testing_data, FUN=sum)
+testing_data3=aggregate(PredPrice_CheaperRenewables~Year+Zone, data=testing_data, FUN=sum)
+
+write.xlsx(testing_data1[,c("PredPrice_Base","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_Med", row.names=FALSE)
+write.xlsx(testing_data2[,c("PredPrice_High_EconGrowth","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_High", append=TRUE, row.names=FALSE)
+write.xlsx(testing_data3[,c("PredPrice_CheaperRenewables","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S3_Low", append=TRUE, row.names=FALSE)
+
+#carbon tax
+testing_data3=merge(testing_data3,adjustments)
+testing_data2=merge(testing_data2,adjustments)
+testing_data1=merge(testing_data1,adjustments)
+
+testing_data3$PredPrice_CheaperRenewables=testing_data3$PredPrice_CheaperRenewables*testing_data3$C_tax
+testing_data2$PredPrice_High_EconGrowth=testing_data2$PredPrice_High_EconGrowth*testing_data2$C_tax
+testing_data1$PredPrice_Base=testing_data1$PredPrice_Base*testing_data1$C_tax
+
+saveRDS(testing_data1,"Predicted_SPPs_C_tax_med.rds")
+saveRDS(testing_data2,"Predicted_SPPs_C_tax_high.rds")
+saveRDS(testing_data3,"Predicted_SPPs_C_tax_low.rds")
+
+
+write.xlsx(testing_data1[,c("PredPrice_Base","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S1_Med_Ctax", append=TRUE, row.names=FALSE)
+write.xlsx(testing_data2[,c("PredPrice_High_EconGrowth","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S2_High_Ctax", append=TRUE, row.names=FALSE)
+write.xlsx(testing_data3[,c("PredPrice_CheaperRenewables","Year","Zone")], file="Predicted_SPPs.xlsx", sheetName="S3_Low_Ctax", append=TRUE, row.names=FALSE)
+
 #saveRDS(testing_data,"Predicted_SPPs_NG_only.rds")
