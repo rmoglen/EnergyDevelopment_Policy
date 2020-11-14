@@ -34,12 +34,9 @@ if (build_SPP){
 SPP_h$"Delivery Date"=as.Date(SPP_h$"Delivery Date",format = "%m/%d/%Y")
 SPP_h$month=as.numeric(format(SPP_h$`Delivery Date`, format="%m"))
 SPP_h$Year=as.numeric(format(SPP_h$`Delivery Date`, format="%Y"))
-SPP_h$season="non-summer"
-SPP_h$season[SPP_h$month<11 & SPP_h$month>4]="summer"
-SPP_h$interval="off-peak"
-SPP_h$interval[SPP_h$season=="summer" & SPP_h$'Delivery Hour'>7 & SPP_h$'Delivery Hour'<24]="peak"
-SPP_h$interval[SPP_h$season=="non-summer" & (SPP_h$'Delivery Hour'<2 | SPP_h$'Delivery Hour'>23)]="peak"
-SPP_h$category=paste0(SPP_h$season," ",SPP_h$interval)
+SPP_h$category="non-summer"
+SPP_h$category[SPP_h$month<11 & SPP_h$month>4 & SPP_h$'Delivery Hour'>7 & SPP_h$'Delivery Hour'<24]="summer peak"
+SPP_h$category[SPP_h$month<11 & SPP_h$month>4 & (SPP_h$'Delivery Hour'<8 | SPP_h$'Delivery Hour'>23)]="summer off-peak"
 colnames(SPP_h)[7]="Price"
 colnames(SPP_h)[5]="Zone"
 

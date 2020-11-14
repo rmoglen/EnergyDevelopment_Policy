@@ -148,31 +148,26 @@ if (graphing_regression){
   colnames(temp)[3]="Price"
   SPPs=rbind(SPPs,temp)
   
+  #Medium C-tax
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_Base_Ctax")],Scenario="Medium C-tax")
+  colnames(temp)[3]="Price"
+  SPPs=rbind(SPPs,temp)
+  
+  #High C-tax
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_High_EconGrowth_Ctax")],Scenario="High C-tax")
+  colnames(temp)[3]="Price"
+  SPPs=rbind(SPPs,temp)
+  
+  #Low C-tax
+  temp=data.frame(predicted_SPPs[,c("Year","category","PredPrice_CheaperRenewables_Ctax")],Scenario="Low C-tax")
+  colnames(temp)[3]="Price"
+  SPPs=rbind(SPPs,temp)
+  
   #Weight LMPs 
   SPPs$Price[SPPs$category=="summer peak"]=SPPs$Price[SPPs$category=="summer peak"]*(1/6) 
   SPPs$Price[SPPs$category=="summer off-peak"]=SPPs$Price[SPPs$category=="summer off-peak"]*(1/12)
-  SPPs$Price[SPPs$category=="non-summer off-peak"]=SPPs$Price[SPPs$category=="non-summer off-peak"]*(11/16)  
-  SPPs$Price[SPPs$category=="non-summer peak"]=SPPs$Price[SPPs$category=="non-summer peak"]*(1/16)  
+  SPPs$Price[SPPs$category=="non-summer"]=SPPs$Price[SPPs$category=="non-summer"]*(0.75)  
   SPPs=aggregate(Price~Year+Scenario, data=SPPs, FUN=sum)
-  
-  #Carbon Tax Scenarios
-  temp=readRDS("predicted_SPPs_C_tax_med.RDS")
-  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_Base")]
-  colnames(temp)[2]="Price"
-  temp$Scenario="Med C-tax"
-  SPPs=rbind(SPPs,temp)
-  
-  temp=readRDS("predicted_SPPs_C_tax_high.RDS")
-  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_High_EconGrowth")]
-  colnames(temp)[2]="Price"
-  temp$Scenario="High C-tax"
-  SPPs=rbind(SPPs,temp)
-  
-  temp=readRDS("predicted_SPPs_C_tax_low.RDS")
-  temp=temp[temp$Zone==LZ_graphing,c("Year","PredPrice_CheaperRenewables")]
-  colnames(temp)[2]="Price"
-  temp$Scenario="Low C-tax"
-  SPPs=rbind(SPPs,temp)
   
   p3=ggplot(data=SPPs, aes(x=Year, y=Price, group=Scenario, color=Scenario))+
     geom_line(aes(linetype=Scenario),lwd=1.2) +
@@ -229,7 +224,7 @@ if (graphing_regression){
     ggtitle(paste0("Gas Prices vs. LMPs in ",LZ_graphing, " (2011-2019)"))+
     theme_minimal()
   
-  print(p5)
+  #print(p5)
   
   #And now look at resulting forecasts
   predicted_SPPs=readRDS("predicted_SPPs_NG_only.RDS")
@@ -248,8 +243,7 @@ if (graphing_regression){
   #Weight LMPs 
   SPPs$Price[SPPs$category=="summer peak"]=SPPs$Price[SPPs$category=="summer peak"]*(1/6) 
   SPPs$Price[SPPs$category=="summer off-peak"]=SPPs$Price[SPPs$category=="summer off-peak"]*(1/12)
-  SPPs$Price[SPPs$category=="non-summer off-peak"]=SPPs$Price[SPPs$category=="non-summer off-peak"]*(11/16)  
-  SPPs$Price[SPPs$category=="non-summer peak"]=SPPs$Price[SPPs$category=="non-summer peak"]*(1/16)  
+  SPPs$Price[SPPs$category=="non-summer"]=SPPs$Price[SPPs$category=="non-summer"]*(0.75)  
   SPPs=aggregate(Price~Year+LMPs, data=SPPs, FUN=sum)
   
   p6=ggplot(data=SPPs, aes(x=Year, y=Price, group=LMPs))+
@@ -276,7 +270,7 @@ if (graphing_regression){
       sec.axis = sec_axis(~./9.1, name="Natural Gas Price ($/tcf)") #second axis
     )
   
-  print(p6)
+  #print(p6)
   
   #Explore the relationship with other predictors: GDP, Year, Solar and Wind Costs
   SPP_h=aggregate(Price~Year, data=SPP_h, FUN=mean)
@@ -318,7 +312,7 @@ if (graphing_regression){
     ylab("Average LMP ($/MWh)") +
     theme_minimal()
   
-  p11=multiplot(p7, p8, p9, p10, cols=2)
+  #p11=multiplot(p7, p8, p9, p10, cols=2)
 }
 
 
